@@ -575,6 +575,13 @@ module Viewpoint::EWS::SOAP
       nbuild[NS_EWS_TYPES].Constant('Value' => expr[:value])
     end
 
+    # Item pagination
+    def indexed_page_item_view!(item_view)
+      attribs = {'BasePoint' => 'Beginning'}
+      item_view.each_pair {|k,v| attribs[k.to_s.camel_case] = v.to_s}
+      @nbuild[NS_EWS_MESSAGES].IndexedPageItemView(attribs)
+    end
+
     # Build the CalendarView element
     def calendar_view!(cal_view)
       attribs = {}
