@@ -30,6 +30,9 @@ class Viewpoint::EWSClient
   #   Viewpoint::EWS::SOAP::ExchangeWebService.
   # @option opts [Object] :http_class specify an alternate HTTP connection class.
   # @option opts [Hash] :http_opts options to pass to the connection
+  # @option opts [String] :impersonation_user Exchange Impersonation user
+  # @option opts [Symbol] :impersonation_type Type of the supplied user. See
+  #   impersonate()
   def initialize(endpoint, user = nil, pass = nil, opts = {})
     # dup all. @see ticket https://github.com/zenchild/Viewpoint/issues/68
     endpoint, user, pass = endpoint.dup, user.dup, pass.dup
@@ -56,6 +59,18 @@ class Viewpoint::EWSClient
 
   def auto_deepen=(deepen)
     set_auto_deepen deepen
+  end
+
+  # Act in the context of a different user
+  # @param security_id [String] Exchange Impersonation user. The user can be
+  #   identified by the User Principal Name, SID or email address.
+  # @param type [Symbol] Type of the supplied user. Can be :principal_name,
+  #   :sid, :primary_smtp_address (default) or :smtp_address.
+  # @see http://msdn.microsoft.com/en-us/library/exchange/aa565690.aspx
+  # @see http://msdn.microsoft.com/en-us/library/exchange/bb204095.aspx
+  def impersonate(security_id, type = nil)
+    @ews.impersonation_type = type if type
+    @ews.impersonation_user = security_id
   end
 
   private
