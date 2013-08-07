@@ -63,8 +63,6 @@ require 'ews/soap/exchange_web_service'
 require 'ews/connection_helper'
 require 'ews/connection'
 
-require 'ews/impersonation'
-
 # Base Types
 require 'ews/types'
 require 'ews/types/item_field_uri_map'
