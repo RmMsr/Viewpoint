@@ -140,7 +140,7 @@ module Viewpoint::EWS::SOAP
     # @see http://msdn.microsoft.com/en-us/library/exchange/aa563549(v=exchg.150).aspx
     # @todo needs peer check
     def indexed_page_item_view!(indexed_page_item_view)
-      attribs = {}
+      attribs = {'BasePoint' => 'Beginning'}
       indexed_page_item_view.each_pair {|k,v| attribs[k.to_s.camel_case] = v.to_s}
       @nbuild[NS_EWS_MESSAGES].IndexedPageItemView(attribs)
     end
