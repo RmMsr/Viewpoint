@@ -31,4 +31,9 @@ describe Viewpoint::EWS::SOAP::EwsBuilder do
     expect {@builder.send(:format_time, 'asdf')}.to raise_error(Viewpoint::EWS::EwsBadArgumentError)
   end
 
+  it 'should contain exchange impersonation' do
+    doc = @builder.build!(impersonation: {principal_name: 'user'})
+    selector = "//soap:Header/t:ExchangeImpersonation/t:ConnectingSID/t:PrincipalName[text()='user']"
+    doc.root.xpath(selector, @namespaces).should be_any
+  end
 end

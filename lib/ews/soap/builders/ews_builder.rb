@@ -35,6 +35,8 @@ module Viewpoint::EWS::SOAP
     # @param [Hash] opts
     # @option opts [String] :server_version The version string that should get
     #   set in the Header. See ExchangeWebService#initialize
+    # @option opts [Hash] :impersonation ExchangeImpersonation. Format:
+    #    {impersonation_type => impersonation_user}
     # @example
     #   xb = EwsBuilder.new
     #   xb.build! do |part, b|
@@ -49,7 +51,7 @@ module Viewpoint::EWS::SOAP
         node.parent.namespace = parent_namespace(node)
         node.Header {
           set_version_header! opts[:server_version]
-		      set_impersonation! opts[:impersonation_type], opts[:impersonation_mail]
+          set_impersonation_header! opts[:impersonation]
           yield(:header, self) if block_given?
         }
         node.Body {
@@ -1071,6 +1073,25 @@ module Viewpoint::EWS::SOAP
       build_xml!(item)
     end
 
+    # Render ConnectingSID
+    # @see http://msdn.microsoft.com/en-us/library/exchange/aa581005.aspx
+    def connecting_sID!(security_identifier)
+      type, value = security_identifier.first
+      nbuild[NS_EWS_TYPES].ConnectingSID do |x|
+        case type
+          when :principal_name, :upn
+            x.PrincipalName value
+          when :sid
+            x.SID value
+          when :primary_smtp_address
+            x.PrimarySmtpAddress value
+          when :smtp_address
+            x.SmtpAddress value
+          else
+            raise EwsBadArgumentError, "Unknown ConnectingSID type. #{type}"
+        end
+      end
+    end
 
 private
 
@@ -1086,15 +1107,13 @@ private
       end
     end
 
-    def set_impersonation!(type, address)
-	    if type && type != ""
-	      nbuild[NS_EWS_TYPES].ExchangeImpersonation {
-		      nbuild[NS_EWS_TYPES].ConnectingSID {
-		        nbuild[NS_EWS_TYPES].method_missing type, address
-		      }
-        }
+    # Set ExchangeImpersonation Header
+    # @param impersonate [Hash] {impersonation_type => impersonation_user}
+    def set_impersonation_header!(impersonate)
+      if impersonate.is_a?(Hash) && impersonate.any?
+        nbuild[NS_EWS_TYPES].ExchangeImpersonation { connecting_sID!(impersonate) }
       end
-	  end
+    end
 
     # some methods need special naming so they use the '_r' suffix like 'and'
     def normalize_type(type)

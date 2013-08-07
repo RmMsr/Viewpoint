@@ -26,7 +26,8 @@ module Viewpoint::EWS::SOAP
     include ExchangeUserConfiguration
     include ExchangeSynchronization
 
-    attr_accessor :server_version, :auto_deepen, :no_auto_deepen_behavior, :connection, :impersonation_type, :impersonation_address
+    attr_accessor :server_version, :auto_deepen, :no_auto_deepen_behavior, :connection,
+                  :impersonation_type, :impersonation_user
 
     # @param [Viewpoint::EWS::Connection] connection the connection object
     # @param [Hash] opts additional options to the web service
@@ -34,14 +35,19 @@ module Viewpoint::EWS::SOAP
     #   requests. Must be one of the contants VERSION_2007, VERSION_2007_SP1,
     #   VERSION_2010, VERSION_2010_SP1, VERSION_2010_SP2, or VERSION_NONE. The
     #   default is VERSION_2010.
+    # @option opts [String] :impersonation_user EWS will act in the context of
+    #   the supplied user.
+    # @option opts [Symbol] :impersonation_type Type of the supplied Exchange
+    #   Impersonation user. Can be :principal_name, :sid, :primary_smtp_address
+    #   or :smtp_address. :primary_smtp_address is the default.
     def initialize(connection, opts = {})
       super()
-      @connection = connection
-      @server_version = opts[:server_version] ? opts[:server_version] : VERSION_2010
-      @auto_deepen    = true
+      @connection              = connection
+      @server_version          = opts[:server_version] ? opts[:server_version] : VERSION_2010
+      @impersonation_type      = opts[:impersonation_type] || :primary_smtp_address
+      @impersonation_user      = opts[:impersonation_user] || nil
+      @auto_deepen             = true
       @no_auto_deepen_behavior = :raise
-      @impersonation_type = ""
-      @impersonation_address = ""
     end
 
     def delete_attachment
@@ -225,7 +231,8 @@ module Viewpoint::EWS::SOAP
 
     # Build the common elements in the SOAP message and yield to any custom elements.
     def build_soap!(&block)
-      opts = { :server_version => server_version, :impersonation_type => impersonation_type, :impersonation_mail => impersonation_address }
+      opts = { :server_version => server_version }
+      opts[:impersonation] = {impersonation_type => impersonation_user} if impersonation_user
       EwsBuilder.new.build!(opts, &block)
     end
 
