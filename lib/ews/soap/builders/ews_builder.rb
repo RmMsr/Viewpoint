@@ -49,7 +49,6 @@ module Viewpoint::EWS::SOAP
         node.parent.namespace = parent_namespace(node)
         node.Header {
           set_version_header! opts[:server_version]
-		      set_impersonation! opts[:impersonation_type], opts[:impersonation_mail]
           yield(:header, self) if block_given?
         }
         node.Body {
@@ -1073,16 +1072,6 @@ private
         }
       end
     end
-
-    def set_impersonation!(type, address)
-	    if type && type != ""
-	      nbuild[NS_EWS_TYPES].ExchangeImpersonation {
-		      nbuild[NS_EWS_TYPES].ConnectingSID {
-		        nbuild[NS_EWS_TYPES].method_missing type, address
-		      }
-        }
-      end
-	  end
 
     # some methods need special naming so they use the '_r' suffix like 'and'
     def normalize_type(type)

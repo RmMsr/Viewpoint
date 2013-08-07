@@ -26,7 +26,7 @@ module Viewpoint::EWS::SOAP
     include ExchangeUserConfiguration
     include ExchangeSynchronization
 
-    attr_accessor :server_version, :auto_deepen, :no_auto_deepen_behavior, :connection, :impersonation_type, :impersonation_address
+    attr_accessor :server_version, :auto_deepen, :no_auto_deepen_behavior, :connection
 
     # @param [Viewpoint::EWS::Connection] connection the connection object
     # @param [Hash] opts additional options to the web service
@@ -40,8 +40,6 @@ module Viewpoint::EWS::SOAP
       @server_version = opts[:server_version] ? opts[:server_version] : VERSION_2010
       @auto_deepen    = true
       @no_auto_deepen_behavior = :raise
-      @impersonation_type = ""
-      @impersonation_address = ""
     end
 
     def delete_attachment
@@ -225,7 +223,7 @@ module Viewpoint::EWS::SOAP
 
     # Build the common elements in the SOAP message and yield to any custom elements.
     def build_soap!(&block)
-      opts = { :server_version => server_version, :impersonation_type => impersonation_type, :impersonation_mail => impersonation_address }
+      opts = { :server_version => server_version }
       EwsBuilder.new.build!(opts, &block)
     end
 
