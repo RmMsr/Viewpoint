@@ -89,10 +89,14 @@ module Viewpoint::EWS::SOAP
         vals = vals.first.clone
         se = vals.delete(:sub_elements)
         txt = vals.delete(:text)
+        xmlns_attribute = vals.delete(:xmlns_attribute)
 
-        @nbuild.send(keys.first.to_s.camel_case, txt, vals) {|x|
+        node = @nbuild.send(keys.first.to_s.camel_case, txt, vals) {|x|
           build_xml!(se) if se
         }
+
+        # Set node level namespace
+        node.xmlns = NAMESPACES["xmlns:#{xmlns_attribute}"] if xmlns_attribute
       when 'Array'
         elems.each do |e|
           build_xml!(e)
@@ -832,6 +836,12 @@ module Viewpoint::EWS::SOAP
       }
     end
 
+    def from!(f)
+      nbuild[NS_EWS_TYPES].From {
+        mailbox! f
+      }
+    end
+
     def required_attendees!(attendees)
       nbuild[NS_EWS_TYPES].RequiredAttendees {
         attendees.each {|a| attendee!(a[:attendee])}
@@ -908,9 +918,9 @@ module Viewpoint::EWS::SOAP
       uri = upd.select {|k,v| k =~ /_uri/i}
       raise EwsBadArgumentError, "Bad argument given for SetItemField." if uri.keys.length != 1
       upd.delete(uri.keys.first)
-      @nbuild.SetItemField {
-        dispatch_field_uri!(uri)
-        dispatch_field_item!(upd)
+      @nbuild[NS_EWS_TYPES].SetItemField {
+        dispatch_field_uri!(uri, NS_EWS_TYPES)
+        dispatch_field_item!(upd, NS_EWS_TYPES)
       }
     end
 
@@ -1033,7 +1043,7 @@ module Viewpoint::EWS::SOAP
       case type
       when :field_uRI, :field_uri
         vals.each do |val|
-          nbuild[ns].FieldURI('FieldURI' => val)
+          nbuild[ns].FieldURI('FieldURI' => val[type])
         end
       when :indexed_field_uRI, :indexed_field_uri
         vals.each do |val|
@@ -1055,7 +1065,9 @@ module Viewpoint::EWS::SOAP
       end
     end
 
-    def dispatch_field_item!(item)
+    # Insert item, enforce xmlns attribute if prefix is present
+    def dispatch_field_item!(item, ns_prefix = nil)
+      item.values.first[:xmlns_attribute] = ns_prefix if ns_prefix
       build_xml!(item)
     end
 
