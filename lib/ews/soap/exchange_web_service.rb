@@ -25,6 +25,7 @@ module Viewpoint::EWS::SOAP
     include ExchangeAvailability
     include ExchangeUserConfiguration
     include ExchangeSynchronization
+    include ExchangeTimeZones
 
     attr_accessor :server_version, :auto_deepen, :no_auto_deepen_behavior, :connection,
                   :impersonation_type, :impersonation_user
@@ -233,6 +234,7 @@ module Viewpoint::EWS::SOAP
     def build_soap!(&block)
       opts = { :server_version => server_version }
       opts[:impersonation] = {impersonation_type => impersonation_user} if impersonation_user
+      opts[:time_zone_context] = @time_zone_context if @time_zone_context
       EwsBuilder.new.build!(opts, &block)
     end
 

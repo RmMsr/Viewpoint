@@ -36,4 +36,10 @@ describe Viewpoint::EWS::SOAP::EwsBuilder do
     selector = "//soap:Header/t:ExchangeImpersonation/t:ConnectingSID/t:PrincipalName[text()='user']"
     doc.root.xpath(selector, @namespaces).should be_any
   end
+
+  it 'should contain time zone context' do
+    doc = @builder.build!(time_zone_context: {id: 'SpaceTime'})
+    selector = "//soap:Header/t:TimeZoneContext/t:TimeZoneDefinition[@Id='SpaceTime']"
+    doc.root.xpath(selector, @namespaces).should be_any
+  end
 end
