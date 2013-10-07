@@ -71,6 +71,7 @@ class Viewpoint::EWSClient
   def impersonate(security_id, type = nil)
     @ews.impersonation_type = type if type
     @ews.impersonation_user = security_id
+  end
 
   # Specify a default time zone context for all time attributes
   # @param id [String] Identifier of a Microsoft well known time zone (e.g: 'UTC', 'W. Europe Standard Time')
@@ -104,5 +105,4 @@ class Viewpoint::EWSClient
       obj.opts[:restriction] = obj.restriction
     end
   end
-
 end
